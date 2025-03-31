@@ -68,19 +68,21 @@ Remember: Be conversational and human-like. Follow the exact sequence: 1) ask na
 # Available languages and their system prompts
 LANGUAGES = {
     "1": {"name": "English", "code": "en"},
-    "2": {"name": "Spanish", "code": "es"}, 
-    "3": {"name": "Hindi", "code": "hi"},
-    "4": {"name": "French", "code": "fr"},
-    "5": {"name": "German", "code": "de"}
+    "2": {"name": "Hindi", "code": "hi"}, 
+    "3": {"name": "Tamil", "code": "ta"},
+    "4": {"name": "Telugu", "code": "te"},
+    "5": {"name": "Kannada", "code": "kn"},
+    "6": {"name": "Malayalam", "code": "ml"}
 }
 
 # Translated language selection message
 LANGUAGE_SELECTION_MESSAGE = {
-    "en": "Welcome to the Medical Assistant! Please select your preferred language:\n1️⃣ English\n2️⃣ Spanish\n3️⃣ Hindi\n4️⃣ French\n5️⃣ German\n\nReply with the number of your choice.",
-    "es": "¡Bienvenido al Asistente Médico! Seleccione su idioma preferido:\n1️⃣ Inglés\n2️⃣ Español\n3️⃣ Hindi\n4️⃣ Francés\n5️⃣ Alemán\n\nResponda con el número de su elección.",
-    "hi": "मेडिकल असिस्टेंट में आपका स्वागत है! कृपया अपनी पसंदीदा भाषा चुनें:\n1️⃣ अंग्रेज़ी\n2️⃣ स्पेनिश\n3️⃣ हिंदी\n4️⃣ फ्रेंच\n5️⃣ जर्मन\n\nअपनी पसंद का नंबर लिखकर जवाब दें।",
-    "fr": "Bienvenue dans l'Assistant Médical ! Veuillez sélectionner votre langue préférée :\n1️⃣ Anglais\n2️⃣ Espagnol\n3️⃣ Hindi\n4️⃣ Français\n5️⃣ Allemand\n\nRépondez avec le numéro de votre choix.",
-    "de": "Willkommen beim Medizinischen Assistenten! Bitte wählen Sie Ihre bevorzugte Sprache:\n1️⃣ Englisch\n2️⃣ Spanisch\n3️⃣ Hindi\n4️⃣ Französisch\n5️⃣ Deutsch\n\nAntworten Sie mit der Nummer Ihrer Wahl."
+    "en": "Welcome to the Medical Assistant! Please select your preferred language:\n1️⃣ English\n2️⃣ Hindi\n3️⃣ Tamil\n4️⃣ Telugu\n5️⃣ Kannada\n6️⃣ Malayalam\n\nReply with the number of your choice. You can type 'stop' at any time to end our conversation.",
+    "hi": "मेडिकल असिस्टेंट में आपका स्वागत है! कृपया अपनी पसंदीदा भाषा चुनें:\n1️⃣ अंग्रे़ी\n2️⃣ हिंदी\n3️⃣ तमिल\n4️⃣ तेलुगु\n5️⃣ कन्नड़\n6️⃣ मलयालम\n\nअपनी पसंद का नंबर लिखकर जवाब दें। आप किसी भी समय बातचीत समाप्त करने के लिए 'stop' टाइप कर सकते हैं।",
+    "ta": "மருத்துவ உதவியாளருக்கு வரவேற்கிறோம்! உங்கள் விருப்பமான மொழியைத் தேர்ந்தெடுக்கவும்:\n1️⃣ ஆங்கிலம்\n2️⃣ இந்தி\n3️⃣ தமிழ்\n4️⃣ தெலுங்கு\n5️⃣ கன்னடம்\n6️⃣ மலையாளம்\n\nஉங்கள் தேர்வின் எண்ணுடன் பதிலளிக்கவும். எந்த நேரத்திலும் உரையாடலை முடிக்க 'stop' என்று தட்டச்சு செய்யலாம்.",
+    "te": "మెడికల్ అసిస్టెంట్‌కి స్వాగతం! దయచేసి మీ ప్రాధాన్య భాషను ఎంచుకోండి:\n1️⃣ ఇంగ్లీష్\n2️⃣ హిందీ\n3️⃣ తమిళం\n4️⃣ తెలుగు\n5️⃣ కన్నడ\n6️⃣ మలయాళం\n\nమీ ఎంపిక సంఖ్యతో ప్రతిస్పందించండి. మీరు ఎప్పుడైనా సంభాషణను ముగించడానికి 'stop' అని టైప్ చేయవచ్చు.",
+    "kn": "ವೈದ್ಯಕೀಯ ಸಹಾಯಕಕ್ಕೆ ಸುಸ್ವಾಗತ! ದಯವಿಟ್ಟು ನಿಮ್ಮ ಆದ್ಯತೆಯ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ:\n1️⃣ ಇಂಗ್ಲಿಷ್\n2️⃣ ಹಿಂದಿ\n3️⃣ ತಮಿಳು\n4️⃣ ತೆಲುಗು\n5️⃣ ಕನ್ನಡ\n6️⃣ ಮಲಯಾಳಂ\n\nನಿಮ್ಮ ಆಯ್ಕೆಯ ಸಂಖ್ಯೆಯೊಂದಿಗೆ ಉತ್ತರಿಸಿ. ಯಾವುದೇ ಸಮಯದಲ್ಲಿ ಸಂಭಾಷಣೆಯನ್ನು ಕೊನೆಗೊಳಿಸಲು ನೀವು 'stop' ಎಂದು ಟೈಪ್ ಮಾಡಬಹುದು.",
+    "ml": "മെഡിക്കൽ അസിസ്റ്റന്റിലേക്ക് സ്വാഗതം! നിങ്ങളുടെ ഇഷ്ടപ്പെട്ട ഭാഷ തിരഞ്ഞെടുക്കുക:\n1️⃣ ഇംഗ്ലീഷ്\n2️⃣ ഹിന്ദി\n3️⃣ തമിഴ്\n4️⃣ തെലുങ്ക്\n5️⃣ കന്നഡ\n6️⃣ മലയാളം\n\nനിങ്ങളുടെ തിരഞ്ഞെടുക്കലിന്റെ നമ്പർ ഉപയോഗിച്ച് മറുപടി നൽകുക. നിങ്ങൾക്ക് എപ്പോൾ വേണമെങ്കിലും സംഭാഷണം അവസാനിപ്പിക്കാൻ 'stop' എന്ന് ടൈപ്പ് ചെയ്യാം."
 }
 
 # Store chat history per user
@@ -112,18 +114,21 @@ def get_system_prompt_for_language(language_code):
     # of the system prompt for each language
     if language_code == "en":
         return SYSTEM_PROMPT
-    elif language_code == "es":
-        # Spanish system prompt
-        return SYSTEM_PROMPT.replace("You are a friendly", "Eres un amigable").replace("medical assistant", "asistente médico")
     elif language_code == "hi":
         # Hindi system prompt
         return SYSTEM_PROMPT.replace("You are a friendly", "आप एक मित्रवत").replace("medical assistant", "चिकित्सा सहायक हैं")
-    elif language_code == "fr":
-        # French system prompt
-        return SYSTEM_PROMPT.replace("You are a friendly", "Vous êtes un").replace("medical assistant", "assistant médical amical")
-    elif language_code == "de":
-        # German system prompt
-        return SYSTEM_PROMPT.replace("You are a friendly", "Sie sind ein freundlicher").replace("medical assistant", "medizinischer Assistent")
+    elif language_code == "ta":
+        # Tamil system prompt
+        return SYSTEM_PROMPT.replace("You are a friendly", "நீங்கள் ஒரு நட்பான").replace("medical assistant", "மருத்துவ உதவியாளர்")
+    elif language_code == "te":
+        # Telugu system prompt
+        return SYSTEM_PROMPT.replace("You are a friendly", "మీరు స్నేహపూర్వకమైన").replace("medical assistant", "వైద్య సహాయకులు")
+    elif language_code == "kn":
+        # Kannada system prompt
+        return SYSTEM_PROMPT.replace("You are a friendly", "ನೀವು ಸ್ನೇಹಪರ").replace("medical assistant", "ವೈದ್ಯಕೀಯ ಸಹಾಯಕ")
+    elif language_code == "ml":
+        # Malayalam system prompt
+        return SYSTEM_PROMPT.replace("You are a friendly", "നിങ്ങൾ ഒരു സൗഹൃദപരമായ").replace("medical assistant", "മെഡിക്കൽ അസിസ്റ്റന്റ് ആണ്")
     else:
         return SYSTEM_PROMPT
 
@@ -143,6 +148,27 @@ def webhook():
         resp.message(LANGUAGE_SELECTION_MESSAGE["en"])
         return str(resp)
     
+    # Stop command
+    if incoming_msg.lower() == 'stop':
+        # Add a goodbye message based on user's selected language
+        user_data = get_chat_history(user_id)
+        lang_code = user_data.get("language", "en")
+        
+        goodbye_messages = {
+            "en": "Thank you for using the Medical Assistant. Your conversation has been ended. Type 'reset' if you'd like to start a new conversation in the future.",
+            "hi": "मेडिकल असिस्टेंट का उपयोग करने के लिए धन्यवाद। आपकी बातचीत समाप्त हो गई है। यदि आप भविष्य में नई बातचीत शुरू करना चाहते हैं तो 'reset' टाइप करें।",
+            "ta": "மருத்துவ உதவியாளரைப் பயன்படுத்தியதற்கு நன்றி. உங்கள் உரையாடல் முடிந்தது. எதிர்காலத்தில் புதிய உரையாடலைத் தொடங்க விரும்பினால் 'reset' என்று தட்டச்சு செய்யவும்.",
+            "te": "మెడికల్ అసిస్టెంట్‌ని ఉపయోగించినందుకు ధన్యవాదాలు. మీ సంభాషణ ముగిసింది. భవిష్యత్తులో కొత్త సంభాషణను ప్రారంభించాలనుకుంటే 'reset' టైప్ చేయండి.",
+            "kn": "ವೈದ್ಯಕೀಯ ಸಹಾಯಕವನ್ನು ಬಳಸಿದ್ದಕ್ಕಾಗಿ ಧನ್ಯವಾದಗಳು. ನಿಮ್ಮ ಸಂಭಾಷಣೆಯನ್ನು ಕೊನೆಗೊಳಿಸಲಾಗಿದೆ. ಭವಿಷ್ಯದಲ್ಲಿ ಹೊಸ ಸಂಭಾಷಣೆಯನ್ನು ಪ್ರಾರಂಭಿಸಲು ನೀವು 'stop' ಎಂದು ಟೈಪ್ ಮಾಡಬಹುದು.",
+            "ml": "മെഡിക്കൽ അസിസ്റ്റന്റ് ഉപയോഗിച്ചതിന് നന്ദി. നിങ്ങളുടെ സംഭാഷണം അവസാനിച്ചു. ഭാവിയിൽ പുതിയ സംഭാഷണം ആരംഭിക്കാൻ നിങ്ങൾക്ക് ആഗ്രഹിക്കുന്നുവെങ്കിൽ 'reset' എന്ന് ടൈപ്പ് ചെയ്യാം."
+        }
+        
+        goodbye_message = goodbye_messages.get(lang_code, goodbye_messages["en"])
+        resp.message(goodbye_message)
+        
+        # We don't actually delete the session data to allow them to resume with 'reset'
+        return str(resp)
+    
     # Get user data
     user_data = get_chat_history(user_id)
     
@@ -158,22 +184,24 @@ def webhook():
             # Add initial assistant message in the selected language
             initial_greeting = ""
             if selected_lang == "en":
-                initial_greeting = "Hello! I'm your medical assistant. Could you please tell me your name?"
-            elif selected_lang == "es":
-                initial_greeting = "¡Hola! Soy tu asistente médico. ¿Podrías decirme tu nombre?"
+                initial_greeting = "Hello! I'm your medical assistant. Could you please tell me your name? You can type 'stop' at any time to end our conversation."
             elif selected_lang == "hi":
-                initial_greeting = "नमस्ते! मैं आपका मेडिकल असिस्टेंट हूँ। क्या आप मुझे अपना नाम बता सकते हैं?"
-            elif selected_lang == "fr":
-                initial_greeting = "Bonjour! Je suis votre assistant médical. Pourriez-vous me dire votre nom s'il vous plaît?"
-            elif selected_lang == "de":
-                initial_greeting = "Hallo! Ich bin Ihr medizinischer Assistent. Könnten Sie mir bitte Ihren Namen mitteilen?"
+                initial_greeting = "नमस्ते! मैं आपका मेडिकल असिस्टेंट हूँ। क्या आप मुझे अपना नाम बता सकते हैं? आप किसी भी समय बातचीत समाप्त करने के लिए 'stop' टाइप कर सकते हैं।"
+            elif selected_lang == "ta":
+                initial_greeting = "வணக்கம்! நான் உங்கள் மருத்துவ உதவியாளர். உங்கள் பெயரை தயவுசெய்து சொல்ல முடியுமா? எந்த நேரத்திலும் உரையாடலை முடிக்க 'stop' என்று தட்டச்சு செய்யலாம்."
+            elif selected_lang == "te":
+                initial_greeting = "హలో! నేను మీ మెడికల్ అసిస్టెంట్‌ని. దయచేసి మీ పేరు చెప్పగలరా? మీరు ఎప్పుడైనా సంభాషణను ముగించడానికి 'stop' అని టైప్ చేయవచ్చు."
+            elif selected_lang == "kn":
+                initial_greeting = "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವೈದ್ಯಕೀಯ ಸಹಾಯಕ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಹೆಸರನ್ನು ತಿಳಿಸಬಹುದೇ? ಯಾವುದೇ ಸಮಯದಲ್ಲಿ ಸಂಭಾಷಣೆಯನ್ನು ಕೊನೆಗೊಳಿಸಲು ನೀವು 'stop' ಎಂದು ಟೈಪ್ ಮಾಡಬಹುದು."
+            elif selected_lang == "ml":
+                initial_greeting = "ഹലോ! ഞാൻ നിങ്ങളുടെ മെഡിക്കൽ അസിസ്റ്റന്റാണ്. നിങ്ങളുടെ പേര് ദയവായി പറയാമോ? നിങ്ങൾക്ക് എപ്പോൾ വേണമെങ്കിലും സംഭാഷണം അവസാനിപ്പിക്കാൻ 'stop' എന്ന് ടൈപ്പ് ചെയ്യാം."
             
             user_data["history"] = [{"role": "assistant", "content": initial_greeting}]
             resp.message(initial_greeting)
             return str(resp)
         else:
             # Invalid language selection, send language options again
-            resp.message(LANGUAGE_SELECTION_MESSAGE["en"])
+            resp.message(LANGUAGE_SELECTION_MESSAGE["en"] + "\n\nYou can type 'stop' at any time to end our conversation.")
             return str(resp)
     
     # Add user message to chat history
@@ -279,6 +307,7 @@ def index():
                 <div class="step">
                     <h3>Special Commands</h3>
                     <p>Type 'reset' at any time to start over.</p>
+                    <p>Type 'stop' at any time to end the conversation.</p>
                 </div>
             </div>
         </body>
