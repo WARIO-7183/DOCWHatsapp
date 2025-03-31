@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 # WhatsApp Medical Assistant Bot
 
 A customizable WhatsApp chatbot that serves as a conversational medical assistant, powered by the Groq AI API and Twilio's WhatsApp API. The bot can communicate in multiple languages and presents options in an interactive format.
