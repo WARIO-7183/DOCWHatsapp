@@ -5,6 +5,7 @@ import requests
 import traceback
 import logging
 from twilio.twiml.messaging_response import MessagingResponse
+import json
     
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, 
@@ -16,19 +17,70 @@ COMMON_MEDICINES = {
     "fever": [
         {"name": "Crocin", "brand": "GSK", "generic": "Paracetamol"},
         {"name": "Dolo 650", "brand": "Micro Labs", "generic": "Paracetamol"},
-        {"name": "Calpol", "brand": "GSK", "generic": "Paracetamol"}
+        {"name": "Calpol", "brand": "GSK", "generic": "Paracetamol"},
+        {"name": "Sumo", "brand": "CFL Pharma", "generic": "Paracetamol"},
+        {"name": "Febrinil", "brand": "Aristo", "generic": "Paracetamol"}
     ],
     "headache": [
         {"name": "Saridon", "brand": "Bayer", "generic": "Propyphenazone+Paracetamol"},
-        {"name": "Dart", "brand": "Cipla", "generic": "Paracetamol+Caffeine"}
+        {"name": "Dart", "brand": "Cipla", "generic": "Paracetamol+Caffeine"},
+        {"name": "Disprin", "brand": "Reckitt", "generic": "Aspirin"},
+        {"name": "Combiflam", "brand": "Sanofi", "generic": "Ibuprofen+Paracetamol"}
     ],
     "cold": [
         {"name": "Vicks Action 500", "brand": "P&G", "generic": "Paracetamol+Phenylephrine"},
-        {"name": "D'Cold Total", "brand": "Reckitt", "generic": "Paracetamol+Phenylephrine"}
+        {"name": "D'Cold Total", "brand": "Reckitt", "generic": "Paracetamol+Phenylephrine"},
+        {"name": "Coldarin", "brand": "Alkem", "generic": "Phenylephrine+Chlorpheniramine"},
+        {"name": "Sinarest", "brand": "Centaur", "generic": "Paracetamol+Phenylephrine+Caffeine"},
+        {"name": "Nasivion", "brand": "Merck", "generic": "Oxymetazoline"}
     ],
     "allergies": [
         {"name": "Allegra", "brand": "Sanofi", "generic": "Fexofenadine"},
-        {"name": "Cetrizine", "brand": "Various", "generic": "Cetirizine"}
+        {"name": "Cetrizine", "brand": "Various", "generic": "Cetirizine"},
+        {"name": "Montek LC", "brand": "Sun Pharma", "generic": "Montelukast+Levocetirizine"},
+        {"name": "Avil", "brand": "Sanofi", "generic": "Pheniramine Maleate"},
+        {"name": "Teczine", "brand": "GSK", "generic": "Levocetirizine"}
+    ],
+    "stomach_pain": [
+        {"name": "Buscopan", "brand": "Sanofi", "generic": "Hyoscine Butylbromide"},
+        {"name": "Cyclopam", "brand": "Indoco", "generic": "Dicyclomine"},
+        {"name": "Meftal Spas", "brand": "Blue Cross", "generic": "Mefenamic Acid+Dicyclomine"},
+        {"name": "Spasmo Proxyvon", "brand": "Wockhardt", "generic": "Dicyclomine+Paracetamol"}
+    ],
+    "acidity": [
+        {"name": "Eno", "brand": "GSK", "generic": "Sodium Bicarbonate+Citric Acid"},
+        {"name": "Digene", "brand": "Abbott", "generic": "Magnesium Hydroxide+Simethicone"},
+        {"name": "Gelusil", "brand": "Pfizer", "generic": "Aluminium Hydroxide+Magnesium Hydroxide"},
+        {"name": "Pan-D", "brand": "Alkem", "generic": "Pantoprazole+Domperidone"},
+        {"name": "Aciloc", "brand": "Cadila", "generic": "Ranitidine"}
+    ],
+    "diarrhea": [
+        {"name": "Lopamide", "brand": "Cipla", "generic": "Loperamide"},
+        {"name": "Eldoper", "brand": "Micro Labs", "generic": "Loperamide"},
+        {"name": "Norflox-TZ", "brand": "Cipla", "generic": "Norfloxacin+Tinidazole"},
+        {"name": "Enteroquinol", "brand": "Sanofi", "generic": "Clioquinol"},
+        {"name": "ORS", "brand": "Various", "generic": "Oral Rehydration Solution"}
+    ],
+    "pain_relief": [
+        {"name": "Combiflam", "brand": "Sanofi", "generic": "Ibuprofen+Paracetamol"},
+        {"name": "Brufen", "brand": "Abbott", "generic": "Ibuprofen"},
+        {"name": "Voveran", "brand": "Novartis", "generic": "Diclofenac"},
+        {"name": "Ultracet", "brand": "J&J", "generic": "Tramadol+Paracetamol"},
+        {"name": "Flexon", "brand": "Dr. Reddy's", "generic": "Etoricoxib"}
+    ],
+    "cough": [
+        {"name": "Benadryl", "brand": "J&J", "generic": "Diphenhydramine"},
+        {"name": "Honitus", "brand": "Dabur", "generic": "Herbal Formulation"},
+        {"name": "Ascoril", "brand": "Glenmark", "generic": "Terbutaline+Bromhexine"},
+        {"name": "Koflet", "brand": "Himalaya", "generic": "Herbal Formulation"},
+        {"name": "Chericof", "brand": "Cipla", "generic": "Codeine+Chlorpheniramine"}
+    ],
+    "vitamins": [
+        {"name": "Becosules", "brand": "Pfizer", "generic": "B-Complex+Vitamin C"},
+        {"name": "Supradyn", "brand": "Bayer", "generic": "Multivitamin+Minerals"},
+        {"name": "Shelcal", "brand": "Torrent", "generic": "Calcium+Vitamin D3"},
+        {"name": "Neurobion", "brand": "Merck", "generic": "B1+B6+B12"},
+        {"name": "Zincovit", "brand": "Apex", "generic": "Multivitamin+Zinc"}
     ]
 }
 
@@ -79,10 +131,10 @@ You are a friendly, conversational medical assistant. Follow these guidelines:
 9. Ask focused follow-up questions about symptoms - one question at a time.
 10. Present options when appropriate (like pain types, severity, etc.) using the numbered format.
 11. Use a warm, empathetic tone while maintaining professionalism.
-12. For common ailments, suggest over-the-counter medicines available in India, mentioning both brand name and generic name.
-13. After suggesting medication, always recommend consulting a healthcare professional for proper diagnosis and treatment.
+12. For common ailments, suggest 2-3 specific over-the-counter medicines available in India from our medicine list, including both brand name and generic name. For example: "For your fever, you might consider taking Dolo 650 (Paracetamol) or Crocin (Paracetamol)."
+13. After suggesting medication, recommend consulting a healthcare professional for proper diagnosis and treatment.
 14. Clearly state you're an AI assistant, not a replacement for professional medical care.
-15. When discussing serious symptoms, immediately recommend connecting with a real doctor.
+15. When discussing serious symptoms, recommend seeing a doctor immediately.
 16. Prioritize clarity and brevity over comprehensiveness.
 
 Remember: Be conversational and human-like. Follow the exact sequence: 1) ask name, 2) ask age and gender, 3) ask about medical conditions with examples.
@@ -100,12 +152,12 @@ LANGUAGES = {
 
 # Translated language selection message
 LANGUAGE_SELECTION_MESSAGE = {
-    "en": "Welcome to the Medical Assistant! Please select your preferred language:\n1️⃣ English\n2️⃣ Hindi\n3️⃣ Tamil\n4️⃣ Telugu\n5️⃣ Kannada\n6️⃣ Malayalam\n\nReply with the number of your choice. You can type 'stop' at any time to end our conversation.",
-    "hi": "मेडिकल असिस्टेंट में आपका स्वागत है! कृपया अपनी पसंदीदा भाषा चुनें:\n1️⃣ अंग्रे़ी\n2️⃣ हिंदी\n3️⃣ तमिल\n4️⃣ तेलुगु\n5️⃣ कन्नड़\n6️⃣ मलयालम\n\nअपनी पसंद का नंबर लिखकर जवाब दें। आप किसी भी समय बातचीत समाप्त करने के लिए 'stop' टाइप कर सकते हैं।",
-    "ta": "மருத்துவ உதவியாளருக்கு வரவேற்கிறோம்! உங்கள் விருப்பமான மொழியைத் தேர்ந்தெடுக்கவும்:\n1️⃣ ஆங்கிலம்\n2️⃣ இந்தி\n3️⃣ தமிழ்\n4️⃣ தெலுங்கு\n5️⃣ கன்னடம்\n6️⃣ மலையாளம்\n\nஉங்கள் தேர்வின் எண்ணுடன் பதிலளிக்கவும். எந்த நேரத்திலும் உரையாடலை முடிக்க 'stop' என்று தட்டச்சு செய்யலாம்.",
-    "te": "మెడికల్ అసిస్టెంట్‌కి స్వాగతం! దయచేసి మీ ప్రాధాన్య భాషను ఎంచుకోండి:\n1️⃣ ఇంగ్లీష్\n2️⃣ హిందీ\n3️⃣ తమిళం\n4️⃣ తెలుగు\n5️⃣ కన్నడ\n6️⃣ మలయాళం\n\nమీ ఎంపిక సంఖ్యతో ప్రతిస్పందించండి. మీరు ఎప్పుడైనా సంభాషణను ముగించడానికి 'stop' అని టైప్ చేయవచ్చు.",
-    "kn": "ವೈದ್ಯಕೀಯ ಸಹಾಯಕಕ್ಕೆ ಸುಸ್ವಾಗತ! ದಯವಿಟ್ಟು ನಿಮ್ಮ ಆದ್ಯತೆಯ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ:\n1️⃣ ಇಂಗ್ಲಿಷ್\n2️⃣ ಹಿಂದಿ\n3️⃣ ತಮಿಳು\n4️⃣ ತೆಲುಗು\n5️⃣ ಕನ್ನಡ\n6️⃣ ಮಲಯಾಳಂ\n\nನಿಮ್ಮ ಆಯ್ಕೆಯ ಸಂಖ್ಯೆಯೊಂದಿಗೆ ಉತ್ತರಿಸಿ. ಯಾವುದೇ ಸಮಯದಲ್ಲಿ ಸಂಭಾಷಣೆಯನ್ನು ಕೊನೆಗೊಳಿಸಲು ನೀವು 'stop' ಎಂದು ಟೈಪ್ ಮಾಡಬಹುದು.",
-    "ml": "മെഡിക്കൽ അസിസ്റ്റന്റിലേക്ക് സ്വാഗതം! നിങ്ങളുടെ ഇഷ്ടപ്പെട്ട ഭാഷ തിരഞ്ഞെടുക്കുക:\n1️⃣ ഇംഗ്ലീഷ്\n2️⃣ ഹിന്ദി\n3️⃣ തമിഴ്\n4️⃣ തെലുങ്ക്\n5️⃣ കന്നഡ\n6️⃣ മലയാളം\n\nനിങ്ങളുടെ തിരഞ്ഞെടുക്കലിന്റെ നമ്പർ ഉപയോഗിച്ച് മറുപടി നൽകുക. നിങ്ങൾക്ക് എപ്പോൾ വേണമെങ്കിലും സംഭാഷണം അവസാനിപ്പിക്കാൻ 'stop' എന്ന് ടൈപ്പ് ചെയ്യാം."
+    "en": "Welcome to the Medical Assistant! Please select your preferred language:\n1️⃣ English\n2️⃣ Hindi\n3️⃣ Tamil\n4️⃣ Telugu\n5️⃣ Kannada\n6️⃣ Malayalam\n\nReply with the number of your choice.",
+    "hi": "मेडिकल असिस्टेंट में आपका स्वागत है! कृपया अपनी पसंदीदा भाषा चुनें:\n1️⃣ अंग्रे़ी\n2️⃣ हिंदी\n3️⃣ तमिल\n4️⃣ तेलुगु\n5️⃣ कन्नड़\n6️⃣ मलयालम\n\nअपनी पसंद का नंबर लिखकर जवाब दें।",
+    "ta": "மருத்துவ உதவியாளருக்கு வரவேற்கிறோம்! உங்கள் விருப்பமான மொழியைத் தேர்ந்தெடுக்கவும்:\n1️⃣ ஆங்கிலம்\n2️⃣ இந்தி\n3️⃣ தமிழ்\n4️⃣ தெலுங்கு\n5️⃣ கன்னடம்\n6️⃣ மலையாளம்\n\nஉங்கள் தேர்வின் எண்ணுடன் பதிலளிக்கவும்.",
+    "te": "మెడికల్ అసిస్టెంట్‌కి స్వాగతం! దయచేసి మీ ప్రాధాన్య భాషను ఎంచుకోండి:\n1️⃣ ఇంగ్లీష్\n2️⃣ హిందీ\n3️⃣ తమిళం\n4️⃣ తెలుగు\n5️⃣ కన్నడ\n6️⃣ మలయాళం\n\nమీ ఎంపిక సంఖ్యతో ప్రతిస్పందించండి.",
+    "kn": "ವೈದ್ಯಕೀಯ ಸಹಾಯಕಕ್ಕೆ ಸುಸ್ವಾಗತ! ದಯವಿಟ್ಟು ನಿಮ್ಮ ಆದ್ಯತೆಯ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ:\n1️⃣ ಇಂಗ್ಲಿಷ್\n2️⃣ ಹಿಂದಿ\n3️⃣ ತಮಿಳು\n4️⃣ ತೆಲುಗು\n5️⃣ ಕನ್ನಡ\n6️⃣ ಮಲಯಾಳಂ\n\nನಿಮ್ಮ ಆಯ್ಕೆಯ ಸಂಖ್ಯೆಯೊಂದಿಗೆ ಉತ್ತರಿಸಿ.",
+    "ml": "മെഡിക്കൽ അസിസ്റ്റന്റിലേക്ക് സ്വാഗതം! നിങ്ങളുടെ ഇഷ്ടപ്പെട്ട ഭാഷ തിരഞ്ഞെടുക്കുക:\n1️⃣ ഇംഗ്ലീഷ്\n2️⃣ ഹിന്ദി\n3️⃣ തമിഴ്\n4️⃣ തെലുങ്ക്\n5️⃣ കന്നഡ\n6️⃣ മലയാളം\n\nനിങ്ങളുടെ തിരഞ്ഞെടുക്കലിന്റെ നമ്പർ ഉപയോഗിച്ച് മറുപടി നൽകുക."
 }
 
 # Store chat history per user
@@ -204,7 +256,7 @@ def webhook():
             user_data["language"] = selected_lang
             user_data["language_selected"] = True
             
-                       # Add initial assistant message in the selected language
+            # Add initial assistant message in the selected language
             initial_greeting = ""
             if selected_lang == "en":
                 initial_greeting = "Hello! I'm your medical assistant. Could you please tell me your name?"
@@ -224,7 +276,7 @@ def webhook():
             return str(resp)
         else:
             # Invalid language selection, send language options again
-            resp.message(LANGUAGE_SELECTION_MESSAGE["en"] + "\n\nYou can type 'stop' at any time to end our conversation.")
+            resp.message(LANGUAGE_SELECTION_MESSAGE["en"])
             return str(resp)
     
     # Add user message to chat history
@@ -240,8 +292,12 @@ def webhook():
         # Get the appropriate system prompt for the selected language
         system_prompt = get_system_prompt_for_language(user_data["language"])
         
+        # Add medicine data to the system prompt
+        medicine_info = f"\n\nAvailable medicines by category: {json.dumps(COMMON_MEDICINES, indent=2)}"
+        enhanced_system_prompt = system_prompt + medicine_info
+        
         # Prepare the full conversation history for the API
-        messages = [{"role": "system", "content": system_prompt}]
+        messages = [{"role": "system", "content": enhanced_system_prompt}]
         messages.extend(user_data["history"])
         
         # Call Groq API
