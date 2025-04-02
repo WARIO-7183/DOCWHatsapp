@@ -11,6 +11,27 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# Common Indian medicines by category
+COMMON_MEDICINES = {
+    "fever": [
+        {"name": "Crocin", "brand": "GSK", "generic": "Paracetamol"},
+        {"name": "Dolo 650", "brand": "Micro Labs", "generic": "Paracetamol"},
+        {"name": "Calpol", "brand": "GSK", "generic": "Paracetamol"}
+    ],
+    "headache": [
+        {"name": "Saridon", "brand": "Bayer", "generic": "Propyphenazone+Paracetamol"},
+        {"name": "Dart", "brand": "Cipla", "generic": "Paracetamol+Caffeine"}
+    ],
+    "cold": [
+        {"name": "Vicks Action 500", "brand": "P&G", "generic": "Paracetamol+Phenylephrine"},
+        {"name": "D'Cold Total", "brand": "Reckitt", "generic": "Paracetamol+Phenylephrine"}
+    ],
+    "allergies": [
+        {"name": "Allegra", "brand": "Sanofi", "generic": "Fexofenadine"},
+        {"name": "Cetrizine", "brand": "Various", "generic": "Cetirizine"}
+    ]
+}
+
 # Load environment variables
 load_dotenv()
 
@@ -58,11 +79,13 @@ You are a friendly, conversational medical assistant. Follow these guidelines:
 9. Ask focused follow-up questions about symptoms - one question at a time.
 10. Present options when appropriate (like pain types, severity, etc.) using the numbered format.
 11. Use a warm, empathetic tone while maintaining professionalism.
-12. Clearly state you're an AI assistant, not a replacement for professional medical care.
-13. When the conversation appears to be concluding OR when discussing serious symptoms, offer to connect the user to a real doctor.
-14. Prioritize clarity and brevity over comprehensiveness.
+12. For common ailments, suggest over-the-counter medicines available in India, mentioning both brand name and generic name.
+13. After suggesting medication, always recommend consulting a healthcare professional for proper diagnosis and treatment.
+14. Clearly state you're an AI assistant, not a replacement for professional medical care.
+15. When discussing serious symptoms, immediately recommend connecting with a real doctor.
+16. Prioritize clarity and brevity over comprehensiveness.
 
-Remember: Be conversational and human-like. Follow the exact sequence: 1) ask name, 2) ask age and gender, 3) ask about medical conditions with examples. Address the user by name throughout the conversation after learning it.
+Remember: Be conversational and human-like. Follow the exact sequence: 1) ask name, 2) ask age and gender, 3) ask about medical conditions with examples.
 """
 
 # Available languages and their system prompts
@@ -181,20 +204,20 @@ def webhook():
             user_data["language"] = selected_lang
             user_data["language_selected"] = True
             
-            # Add initial assistant message in the selected language
+                       # Add initial assistant message in the selected language
             initial_greeting = ""
             if selected_lang == "en":
-                initial_greeting = "Hello! I'm your medical assistant. Could you please tell me your name? You can type 'stop' at any time to end our conversation."
+                initial_greeting = "Hello! I'm your medical assistant. Could you please tell me your name?"
             elif selected_lang == "hi":
-                initial_greeting = "नमस्ते! मैं आपका मेडिकल असिस्टेंट हूँ। क्या आप मुझे अपना नाम बता सकते हैं? आप किसी भी समय बातचीत समाप्त करने के लिए 'stop' टाइप कर सकते हैं।"
+                initial_greeting = "नमस्ते! मैं आपका मेडिकल असिस्टेंट हूँ। क्या आप मुझे अपना नाम बता सकते हैं?"
             elif selected_lang == "ta":
-                initial_greeting = "வணக்கம்! நான் உங்கள் மருத்துவ உதவியாளர். உங்கள் பெயரை தயவுசெய்து சொல்ல முடியுமா? எந்த நேரத்திலும் உரையாடலை முடிக்க 'stop' என்று தட்டச்சு செய்யலாம்."
+                initial_greeting = "வணக்கம்! நான் உங்கள் மருத்துவ உதவியாளர். உங்கள் பெயரை தயவுசெய்து சொல்ல முடியுமா?"
             elif selected_lang == "te":
-                initial_greeting = "హలో! నేను మీ మెడికల్ అసిస్టెంట్‌ని. దయచేసి మీ పేరు చెప్పగలరా? మీరు ఎప్పుడైనా సంభాషణను ముగించడానికి 'stop' అని టైప్ చేయవచ్చు."
+                initial_greeting = "హలో! నేను మీ మెడికల్ అసిస్టెంట్‌ని. దయచేసి మీ పేరు చెప్పగలరా?"
             elif selected_lang == "kn":
-                initial_greeting = "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವೈದ್ಯಕೀಯ ಸಹಾಯಕ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಹೆಸರನ್ನು ತಿಳಿಸಬಹುದೇ? ಯಾವುದೇ ಸಮಯದಲ್ಲಿ ಸಂಭಾಷಣೆಯನ್ನು ಕೊನೆಗೊಳಿಸಲು ನೀವು 'stop' ಎಂದು ಟೈಪ್ ಮಾಡಬಹುದು."
+                initial_greeting = "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವೈದ್ಯಕೀಯ ಸಹಾಯಕ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಹೆಸರನ್ನು ತಿಳಿಸಬಹುದೇ?"
             elif selected_lang == "ml":
-                initial_greeting = "ഹലോ! ഞാൻ നിങ്ങളുടെ മെഡിക്കൽ അസിസ്റ്റന്റാണ്. നിങ്ങളുടെ പേര് ദയവായി പറയാമോ? നിങ്ങൾക്ക് എപ്പോൾ വേണമെങ്കിലും സംഭാഷണം അവസാനിപ്പിക്കാൻ 'stop' എന്ന് ടൈപ്പ് ചെയ്യാം."
+                initial_greeting = "ഹലോ! ഞാൻ നിങ്ങളുടെ മെഡിക്കൽ അസിസ്റ്റന്റാണ്. നിങ്ങളുടെ പേര് ദയവായി പറയാമോ?"
             
             user_data["history"] = [{"role": "assistant", "content": initial_greeting}]
             resp.message(initial_greeting)
