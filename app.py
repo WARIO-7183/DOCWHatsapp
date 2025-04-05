@@ -6,6 +6,7 @@ import traceback
 import logging
 from twilio.twiml.messaging_response import MessagingResponse
 import json
+from database import init_db, get_user, create_user, update_user_medical_history, update_user_language
     
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, 
@@ -155,10 +156,13 @@ LANGUAGE_SELECTION_MESSAGE = {
     "en": "Welcome to the Medical Assistant! Please select your preferred language:\n1️⃣ English\n2️⃣ Hindi\n3️⃣ Tamil\n4️⃣ Telugu\n5️⃣ Kannada\n6️⃣ Malayalam\n\nReply with the number of your choice.",
     "hi": "मेडिकल असिस्टेंट में आपका स्वागत है! कृपया अपनी पसंदीदा भाषा चुनें:\n1️⃣ अंग्रे़ी\n2️⃣ हिंदी\n3️⃣ तमिल\n4️⃣ तेलुगु\n5️⃣ कन्नड़\n6️⃣ मलयालम\n\nअपनी पसंद का नंबर लिखकर जवाब दें।",
     "ta": "மருத்துவ உதவியாளருக்கு வரவேற்கிறோம்! உங்கள் விருப்பமான மொழியைத் தேர்ந்தெடுக்கவும்:\n1️⃣ ஆங்கிலம்\n2️⃣ இந்தி\n3️⃣ தமிழ்\n4️⃣ தெலுங்கு\n5️⃣ கன்னடம்\n6️⃣ மலையாளம்\n\nஉங்கள் தேர்வின் எண்ணுடன் பதிலளிக்கவும்.",
-    "te": "మెడికల్ అసిస్టెంట్‌కి స్వాగతం! దయచేసి మీ ప్రాధాన్య భాషను ఎంచుకోండి:\n1️⃣ ఇంగ్లీష్\n2️⃣ హిందీ\n3️⃣ తమిళం\n4️⃣ తెలుగు\n5️⃣ కన్నడ\n6️⃣ మలయాళం\n\nమీ ఎంపిక సంఖ్యతో ప్రతిస్పందించండి.",
+    "te": "మెడికల్ అసిస్టెంట్‌ని ఉపయోగించినందుకు ధన్యవాదాలు. మీ సంభాషణ ముగిసింది. భవిష్యత్తులో కొత్త సంభాషణను ప్రారంభించాలనుకుంటే 'reset' టైప్ చేయండి.",
     "kn": "ವೈದ್ಯಕೀಯ ಸಹಾಯಕಕ್ಕೆ ಸುಸ್ವಾಗತ! ದಯವಿಟ್ಟು ನಿಮ್ಮ ಆದ್ಯತೆಯ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ:\n1️⃣ ಇಂಗ್ಲಿಷ್\n2️⃣ ಹಿಂದಿ\n3️⃣ ತಮಿಳು\n4️⃣ ತೆಲುಗು\n5️⃣ ಕನ್ನಡ\n6️⃣ ಮಲಯಾಳಂ\n\nನಿಮ್ಮ ಆಯ್ಕೆಯ ಸಂಖ್ಯೆಯೊಂದಿಗೆ ಉತ್ತರಿಸಿ.",
-    "ml": "മെഡിക്കൽ അസിസ്റ്റന്റിലേക്ക് സ്വാഗതം! നിങ്ങളുടെ ഇഷ്ടപ്പെട്ട ഭാഷ തിരഞ്ഞെടുക്കുക:\n1️⃣ ഇംഗ്ലീഷ്\n2️⃣ ഹിന്ദി\n3️⃣ തമിഴ്\n4️⃣ തെലുങ്ക്\n5️⃣ കന്നഡ\n6️⃣ മലയാളം\n\nനിങ്ങളുടെ തിരഞ്ഞെടുക്കലിന്റെ നമ്പർ ഉപയോഗിച്ച് മറുപടി നൽകുക."
+    "ml": "മെഡിക്കൽ അസിസ്റ്റന്റ് ആണ്! നിങ്ങളുടെ ഇഷ്ടപ്പെട്ട ഭാഷ തിരഞ്ഞെടുക്കുക:\n1️⃣ ഇംഗ്ലീഷ്\n2️⃣ ഹിന്ദി\n3️⃣ തമിഴ്\n4️⃣ തെലുങ്ക്\n5️⃣ കന്നഡ\n6️⃣ മലയാളം\n\nനിങ്ങളുടെ തിരഞ്ഞെടുക്കലിന്റെ നമ്പർ ഉപയോഗിച്ച് മറുപടി നൽകുക."
 }
+
+# Initialize database on startup
+init_db()
 
 # Store chat history per user
 user_sessions = {}
@@ -166,11 +170,26 @@ user_sessions = {}
 def get_chat_history(user_id):
     """Get or initialize chat history for a user"""
     if user_id not in user_sessions:
-        user_sessions[user_id] = {
-            "language_selected": False,
-            "language": "en",
-            "history": []
-        }
+        # Check if user exists in database
+        user = get_user(user_id)
+        if user:
+            # Initialize session with user data from database
+            user_sessions[user_id] = {
+                "language_selected": True,
+                "language": user['language'],
+                "history": [],
+                "name": user['name'],
+                "age": user['age'],
+                "gender": user['gender'],
+                "medical_history": user['medical_history']
+            }
+        else:
+            # Initialize new session
+            user_sessions[user_id] = {
+                "language_selected": False,
+                "language": "en",
+                "history": []
+            }
         return user_sessions[user_id]
     return user_sessions[user_id]
 
@@ -223,25 +242,27 @@ def webhook():
         resp.message(LANGUAGE_SELECTION_MESSAGE["en"])
         return str(resp)
     
-    # Stop command
-    if incoming_msg.lower() == 'stop':
-        # Add a goodbye message based on user's selected language
-        user_data = get_chat_history(user_id)
+    # Bye command
+    if incoming_msg.lower() == 'bye':
+        # Reset chat history and add a goodbye message based on user's selected language
+        user_data = reset_chat_history(user_id)
         lang_code = user_data.get("language", "en")
         
         goodbye_messages = {
-            "en": "Thank you for using the Medical Assistant. Your conversation has been ended. Type 'reset' if you'd like to start a new conversation in the future.",
-            "hi": "मेडिकल असिस्टेंट का उपयोग करने के लिए धन्यवाद। आपकी बातचीत समाप्त हो गई है। यदि आप भविष्य में नई बातचीत शुरू करना चाहते हैं तो 'reset' टाइप करें।",
-            "ta": "மருத்துவ உதவியாளரைப் பயன்படுத்தியதற்கு நன்றி. உங்கள் உரையாடல் முடிந்தது. எதிர்காலத்தில் புதிய உரையாடலைத் தொடங்க விரும்பினால் 'reset' என்று தட்டச்சு செய்யவும்.",
-            "te": "మెడికల్ అసిస్టెంట్‌ని ఉపయోగించినందుకు ధన్యవాదాలు. మీ సంభాషణ ముగిసింది. భవిష్యత్తులో కొత్త సంభాషణను ప్రారంభించాలనుకుంటే 'reset' టైప్ చేయండి.",
-            "kn": "ವೈದ್ಯಕೀಯ ಸಹಾಯಕವನ್ನು ಬಳಸಿದ್ದಕ್ಕಾಗಿ ಧನ್ಯವಾದಗಳು. ನಿಮ್ಮ ಸಂಭಾಷಣೆಯನ್ನು ಕೊನೆಗೊಳಿಸಲಾಗಿದೆ. ಭವಿಷ್ಯದಲ್ಲಿ ಹೊಸ ಸಂಭಾಷಣೆಯನ್ನು ಪ್ರಾರಂಭಿಸಲು ನೀವು 'stop' ಎಂದು ಟೈಪ್ ಮಾಡಬಹುದು.",
-            "ml": "മെഡിക്കൽ അസിസ്റ്റന്റ് ഉപയോഗിച്ചതിന് നന്ദി. നിങ്ങളുടെ സംഭാഷണം അവസാനിച്ചു. ഭാവിയിൽ പുതിയ സംഭാഷണം ആരംഭിക്കാൻ നിങ്ങൾക്ക് ആഗ്രഹിക്കുന്നുവെങ്കിൽ 'reset' എന്ന് ടൈപ്പ് ചെയ്യാം."
+            "en": "Thank you for using the Medical Assistant. Your conversation has been ended. Type 'bye' if you'd like to end the conversation and start a new one.",
+            "hi": "मेडिकल असिस्टेंट का उपयोग करने के लिए धन्यवाद। आपकी बातचीत समाप्त हो गई है। यदि आप बातचीत समाप्त करना और एक नई बातचीत शुरू करना चाहते हैं तो 'bye' टाइप करें।",
+            "ta": "மருத்துவ உதவியாளரைப் பயன்படுத்தியதற்கு நன்றி. உங்கள் உரையாடல் முடிந்தது. உரையாடலை முடிக்கவும் புதிய உரையாடலைத் தொடங்கவும் 'bye' என்று தட்டச்சு செய்யவும்.",
+            "te": "మెడికల్ అసిస్టెంట్‌ని ఉపయోగించినందుకు ధన్యవాదాలు. మీ సంభాషణ ముగిసింది. సంభాషణను ముగించడానికి మరియు కొత్త సంభాషణను ప్రారంభించడానికి 'bye' టైప్ చేయండి.",
+            "kn": "ವೈದ್ಯಕೀಯ ಸಹಾಯಕವನ್ನು ಬಳಸಿದ್ದಕ್ಕಾಗಿ ಧನ್ಯವಾದಗಳು. ನಿಮ್ಮ ಸಂಭಾಷಣೆಯನ್ನು ಕೊನೆಗೊಳಿಸಲಾಗಿದೆ. ಸಂಭಾಷಣೆಯನ್ನು ಕೊನೆಗೊಳಿಸಲು ಮತ್ತು ಹೊಸ ಸಂಭಾಷಣೆಯನ್ನು ಪ್ರಾರಂಭಿಸಲು ನೀವು 'bye' ಎಂದು ಟೈಪ್ ಮಾಡಬಹುದು.",
+            "ml": "മെഡിക്കൽ അസിസ്റ്റന്റ് ഉപയോഗിച്ചതിന് നന്ദി. നിങ്ങളുടെ സംഭാഷണം അവസാനിച്ചു. സംഭാഷണനു മുഗ്യിക്കാൻ മത്തു സംഭാഷണനു പ്രാരംഭിസ്റ്റുകയും നിങ്ങൾക്ക് ആഗ്രഹിക്കുന്നുവെങ്കിൽ 'bye' എന്ന് ടൈപ്പ് ചെയ്യാം."
         }
         
         goodbye_message = goodbye_messages.get(lang_code, goodbye_messages["en"])
         resp.message(goodbye_message)
         
-        # We don't actually delete the session data to allow them to resume with 'reset'
+        # Prompt user to select language again
+        resp.message(LANGUAGE_SELECTION_MESSAGE["en"])
+        
         return str(resp)
     
     # Get user data
@@ -256,20 +277,24 @@ def webhook():
             user_data["language"] = selected_lang
             user_data["language_selected"] = True
             
+            # Update language in database if user exists
+            if "name" in user_data:
+                update_user_language(user_id, selected_lang)
+            
             # Add initial assistant message in the selected language
             initial_greeting = ""
             if selected_lang == "en":
-                initial_greeting = "Hello! I'm your medical assistant. Could you please tell me your name?"
+                initial_greeting = "Hello! I'm your medical assistant. Could you please tell me your phone number?"
             elif selected_lang == "hi":
-                initial_greeting = "नमस्ते! मैं आपका मेडिकल असिस्टेंट हूँ। क्या आप मुझे अपना नाम बता सकते हैं?"
+                initial_greeting = "नमस्ते! मैं आपका मेडिकल असिस्टेंट हूँ। क्या आप मुझे अपना फोन नंबर बता सकते हैं?"
             elif selected_lang == "ta":
-                initial_greeting = "வணக்கம்! நான் உங்கள் மருத்துவ உதவியாளர். உங்கள் பெயரை தயவுசெய்து சொல்ல முடியுமா?"
+                initial_greeting = "வணக்கம்! நான் உங்கள் மருத்துவ உதவியாளர். உங்கள் தொலைபேசி எண்ணை தயவுசெய்து சொல்ல முடியுமா?"
             elif selected_lang == "te":
-                initial_greeting = "హలో! నేను మీ మెడికల్ అసిస్టెంట్‌ని. దయచేసి మీ పేరు చెప్పగలరా?"
+                initial_greeting = "హలో! నేను మీ మెడికల్ అసిస్టెంట్‌ని. దయచేసి మీ ఫోన్ నంబర్ చెప్పగలరా?"
             elif selected_lang == "kn":
-                initial_greeting = "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವೈದ್ಯಕೀಯ ಸಹಾಯಕ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಹೆಸರನ್ನು ತಿಳಿಸಬಹುದೇ?"
+                initial_greeting = "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವೈದ್ಯಕೀಯ ಸಹಾಯಕ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ತಿಳಿಸಬಹುದೇ?"
             elif selected_lang == "ml":
-                initial_greeting = "ഹലോ! ഞാൻ നിങ്ങളുടെ മെഡിക്കൽ അസിസ്റ്റന്റാണ്. നിങ്ങളുടെ പേര് ദയവായി പറയാമോ?"
+                initial_greeting = "ഹലോ! ഞാൻ നിങ്ങളുടെ മെഡിക്കൽ അസിസ്റ്റന്റാണ്. നിങ്ങളുടെ ഫോൺ നമ്പർ ദയവായി പറയാമോ?"
             
             user_data["history"] = [{"role": "assistant", "content": initial_greeting}]
             resp.message(initial_greeting)
@@ -281,6 +306,61 @@ def webhook():
     
     # Add user message to chat history
     user_data["history"].append({"role": "user", "content": incoming_msg})
+    
+    # Check if phone number is provided
+    if "phone_number" not in user_data:
+        user_data["phone_number"] = incoming_msg
+        # Check if user exists in database
+        db_user = get_user(incoming_msg)
+        if db_user:
+            # User exists, load their data
+            user_data.update({
+                "name": db_user["name"],
+                "age": db_user["age"],
+                "gender": db_user["gender"],
+                "medical_history": db_user["medical_history"]
+            })
+            # Ask about current health concerns
+            next_question = f"Welcome back {db_user['name']}! How can I help you today?"
+        else:
+            # New user, ask for name
+            next_question = "Could you please tell me your name?"
+        
+        user_data["history"].append({"role": "assistant", "content": next_question})
+        resp.message(next_question)
+        return str(resp)
+    
+    # Check if name is provided
+    if "name" not in user_data:
+        user_data["name"] = incoming_msg
+        next_question = "Thank you! Could you please tell me your age?"
+        user_data["history"].append({"role": "assistant", "content": next_question})
+        resp.message(next_question)
+        return str(resp)
+    
+    # Check if age is provided
+    if "age" not in user_data:
+        user_data["age"] = incoming_msg
+        next_question = "And your gender, please?"
+        user_data["history"].append({"role": "assistant", "content": next_question})
+        resp.message(next_question)
+        return str(resp)
+    
+    # Check if gender is provided
+    if "gender" not in user_data:
+        user_data["gender"] = incoming_msg
+        # Create new user in database
+        create_user(
+            user_data["phone_number"],
+            user_data["name"],
+            user_data["age"],
+            user_data["gender"],
+            language=user_data["language"]
+        )
+        next_question = "Do you have any previous health issues like diabetes, chronic problems, or kidney problems?"
+        user_data["history"].append({"role": "assistant", "content": next_question})
+        resp.message(next_question)
+        return str(resp)
     
     try:
         # Check if API key is available
@@ -324,6 +404,11 @@ def webhook():
             response_json = response.json()
             assistant_message = response_json["choices"][0]["message"]["content"]
             user_data["history"].append({"role": "assistant", "content": assistant_message})
+            
+            # Update medical history in database
+            medical_history = json.dumps(user_data["history"])
+            update_user_medical_history(user_data["phone_number"], medical_history)
+            
             resp.message(assistant_message)
         
     except Exception as e:
@@ -386,7 +471,7 @@ def index():
                 <div class="step">
                     <h3>Special Commands</h3>
                     <p>Type 'reset' at any time to start over.</p>
-                    <p>Type 'stop' at any time to end the conversation.</p>
+                    <p>Type 'bye' at any time to end the conversation.</p>
                 </div>
             </div>
         </body>
