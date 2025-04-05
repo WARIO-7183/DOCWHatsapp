@@ -1,19 +1,21 @@
-
 # WhatsApp Medical Assistant Bot
 
 A customizable WhatsApp chatbot that serves as a conversational medical assistant, powered by the Groq AI API and Twilio's WhatsApp API. The bot can communicate in multiple languages and presents options in an interactive format.
 
 ## Features
 
-- **Multi-language Support**: Available in English, Spanish, Hindi, French, and German
+- **Multi-language Support**: Available in English, Hindi, Tamil, Telugu, Kannada, and Malayalam
 - **Interactive Option Selection**: Presents choices as numbered lists for easy selection
 - **Conversational Medical Assistance**: Asks about symptoms and offers basic medical guidance
 - **Personalized Experience**: Remembers user details throughout the conversation
+- **User Data Persistence**: Stores user information and medical history in MySQL database
+- **Returning User Recognition**: Automatically identifies returning users by phone number
 - **Simple Reset Command**: Type 'reset' to start over at any time
 
 ## Requirements
 
 - Python 3.7+
+- MySQL Server
 - Groq API key (for the AI language model)
 - Twilio account with WhatsApp sandbox or Business API
 - Ngrok (for local development)
@@ -45,9 +47,99 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Set up environment variables
+### 4. Set up MySQL database
 
-Create a `.env` file in the project root directory: 
-=======
-# AIDocWhatsapp
->>>>>>> origin/main
+Create a MySQL database for the application:
+
+```sql
+CREATE DATABASE medical_assistant;
+```
+
+### 5. Set up environment variables
+
+Create a `.env` file in the project root directory with the following variables:
+
+```
+# Database Configuration
+DB_HOST=localhost
+DB_USER=your_mysql_username
+DB_PASSWORD=your_mysql_password
+DB_NAME=medical_assistant
+
+# API Keys
+GROQ_API_KEY=your_groq_api_key
+TWILIO_ACCOUNT_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_token
+```
+
+## Usage
+
+### 1. Start the application
+
+```bash
+python app.py
+```
+
+The application will automatically:
+- Connect to the MySQL database
+- Create the necessary tables if they don't exist
+- Start the Flask server on port 5000 (or the port specified in your environment variables)
+
+### 2. Expose your local server (for development)
+
+Use ngrok to expose your local server to the internet:
+
+```bash
+ngrok http 5000
+```
+
+### 3. Configure Twilio webhook
+
+Set up your Twilio WhatsApp sandbox to point to your ngrok URL:
+
+```
+https://your-ngrok-url/webhook
+```
+
+### 4. Interact with the bot
+
+Send a message to your Twilio WhatsApp number to start interacting with the bot.
+
+## User Flow
+
+### New Users
+1. Select preferred language
+2. Provide phone number
+3. Enter name, age, and gender
+4. Share health concerns
+5. Receive medical assistance
+
+### Returning Users
+1. Select preferred language
+2. Provide phone number
+3. Bot recognizes the user and loads previous data
+4. Continue conversation with medical history context
+5. Receive updated medical assistance
+
+## Database Structure
+
+The application uses a MySQL database with the following structure:
+
+- **users table**:
+  - `phone_number` (VARCHAR, PRIMARY KEY): User's phone number
+  - `name` (VARCHAR): User's name
+  - `age` (INT): User's age
+  - `gender` (VARCHAR): User's gender
+  - `medical_history` (TEXT): JSON string of conversation history
+  - `language` (VARCHAR): User's preferred language
+  - `created_at` (TIMESTAMP): When the user was first added
+  - `updated_at` (TIMESTAMP): When the user's data was last updated
+
+## Special Commands
+
+- Type `reset` at any time to start over
+- Type `bye` to end the conversation
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
