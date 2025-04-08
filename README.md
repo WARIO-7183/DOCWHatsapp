@@ -8,14 +8,14 @@ A customizable WhatsApp chatbot that serves as a conversational medical assistan
 - **Interactive Option Selection**: Presents choices as numbered lists for easy selection
 - **Conversational Medical Assistance**: Asks about symptoms and offers basic medical guidance
 - **Personalized Experience**: Remembers user details throughout the conversation
-- **User Data Persistence**: Stores user information and medical history in MySQL database
+- **User Data Persistence**: Stores user information and medical history in Supabase database
 - **Returning User Recognition**: Automatically identifies returning users by phone number
 - **Simple Reset Command**: Type 'reset' to start over at any time
 
 ## Requirements
 
 - Python 3.7+
-- MySQL Server
+- Supabase account
 - Groq API key (for the AI language model)
 - Twilio account with WhatsApp sandbox or Business API
 - Ngrok (for local development)
@@ -47,24 +47,20 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4. Set up MySQL database
+### 4. Set up Supabase
 
-Create a MySQL database for the application:
-
-```sql
-CREATE DATABASE medical_assistant;
-```
+1. Create a Supabase account at [supabase.com](https://supabase.com)
+2. Create a new project
+3. Get your project URL and API key from the project settings
 
 ### 5. Set up environment variables
 
 Create a `.env` file in the project root directory with the following variables:
 
 ```
-# Database Configuration
-DB_HOST=localhost
-DB_USER=your_mysql_username
-DB_PASSWORD=your_mysql_password
-DB_NAME=medical_assistant
+# Supabase Configuration
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
 
 # API Keys
 GROQ_API_KEY=your_groq_api_key
@@ -81,8 +77,7 @@ python app.py
 ```
 
 The application will automatically:
-- Connect to the MySQL database
-- Create the necessary tables if they don't exist
+- Connect to the Supabase database
 - Start the Flask server on port 5000 (or the port specified in your environment variables)
 
 ### 2. Expose your local server (for development)
@@ -123,7 +118,7 @@ Send a message to your Twilio WhatsApp number to start interacting with the bot.
 
 ## Database Structure
 
-The application uses a MySQL database with the following structure:
+The application uses a Supabase database with the following structure:
 
 - **users table**:
   - `phone_number` (VARCHAR, PRIMARY KEY): User's phone number

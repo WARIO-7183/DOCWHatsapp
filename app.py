@@ -91,7 +91,11 @@ load_dotenv()
 app = Flask(__name__)
 
 # Get API keys
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "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")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    logger.error("GROQ_API_KEY not found in environment variables")
+    raise ValueError("GROQ_API_KEY environment variable is required")
+
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 
