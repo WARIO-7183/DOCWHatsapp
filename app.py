@@ -91,7 +91,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # Get API keys
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "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")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "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")
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 
@@ -134,7 +134,7 @@ You are a friendly, conversational medical assistant. Follow these guidelines:
 11. Use a warm, empathetic tone while maintaining professionalism.
 12. For common ailments, suggest 2-3 specific over-the-counter medicines available in India from our medicine list, including both brand name and generic name. For example: "For your fever, you might consider taking Dolo 650 (Paracetamol) or Crocin (Paracetamol)."
 13. After suggesting medication, recommend consulting a healthcare professional for proper diagnosis and treatment.
-14. Clearly state you're an AI assistant, not a replacement for professional medical care.
+14. DO NOT repeatedly state that you're an AI assistant or that you're not a replacement for professional medical care. Only mention this at the very end of the conversation.
 15. When discussing serious symptoms, recommend seeing a doctor immediately.
 16. Prioritize clarity and brevity over comprehensiveness.
 
@@ -341,14 +341,21 @@ def webhook():
     # Check if age is provided
     if "age" not in user_data:
         user_data["age"] = incoming_msg
-        next_question = "And your gender, please?"
+        next_question = "Please select your gender:\n1️⃣ Male\n2️⃣ Female\n3️⃣ Other (please specify)"
         user_data["history"].append({"role": "assistant", "content": next_question})
         resp.message(next_question)
         return str(resp)
     
     # Check if gender is provided
     if "gender" not in user_data:
-        user_data["gender"] = incoming_msg
+        # Process gender selection
+        if incoming_msg == "1":
+            user_data["gender"] = "Male"
+        elif incoming_msg == "2":
+            user_data["gender"] = "Female"
+        else:
+            user_data["gender"] = incoming_msg  # Store the custom gender input
+        
         # Create new user in database
         create_user(
             user_data["phone_number"],
@@ -357,7 +364,23 @@ def webhook():
             user_data["gender"],
             language=user_data["language"]
         )
-        next_question = "Do you have any previous health issues like diabetes, chronic problems, or kidney problems?"
+        next_question = "Do you have any of the following health issues? (Reply with the number or type 'none' if you don't have any):\n1️⃣ Diabetes\n2️⃣ Blood Pressure\n3️⃣ Chronic Problems\n4️⃣ Kidney or Liver Issues\n5️⃣ Other (please specify)"
+        user_data["history"].append({"role": "assistant", "content": next_question})
+        resp.message(next_question)
+        return str(resp)
+    
+    # Check if previous health issues are provided
+    if "previous_health_issues" not in user_data:
+        user_data["previous_health_issues"] = incoming_msg
+        next_question = "Have you undergone any surgeries? (Reply with the number or type 'none' if you haven't):\n1️⃣ Appendectomy\n2️⃣ C-section\n3️⃣ Knee/Hip Replacement\n4️⃣ Heart Surgery\n5️⃣ Other (please specify)"
+        user_data["history"].append({"role": "assistant", "content": next_question})
+        resp.message(next_question)
+        return str(resp)
+    
+    # Check if surgeries are provided
+    if "surgeries" not in user_data:
+        user_data["surgeries"] = incoming_msg
+        next_question = "What health concerns or symptoms would you like to discuss today?"
         user_data["history"].append({"role": "assistant", "content": next_question})
         resp.message(next_question)
         return str(resp)
@@ -387,7 +410,7 @@ def webhook():
         }
         
         payload = {
-            "model": "llama-3.3-70b-versatile",
+            "model": "gemma2-9b-it",
             "messages": messages,
             "temperature": 0.7,
             "max_tokens": 800
