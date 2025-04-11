@@ -14,12 +14,16 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Get API key
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "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")
-GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    logger.error("OPENAI_API_KEY not found in environment variables")
+    raise ValueError("OPENAI_API_KEY environment variable is required")
+
+OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 
 def summarize_medical_history(phone_number):
     """
-    Summarize a patient's medical history using Groq LLM
+    Summarize a patient's medical history using OpenAI LLM
     
     Args:
         phone_number (str): The patient's phone number
@@ -28,8 +32,8 @@ def summarize_medical_history(phone_number):
         dict: A dictionary containing the summary and status
     """
     # Check if API key is available
-    if not GROQ_API_KEY:
-        logger.error("GROQ_API_KEY not found in environment variables")
+    if not OPENAI_API_KEY:
+        logger.error("OPENAI_API_KEY not found in environment variables")
         return {
             "success": False,
             "error": "API key not configured",
@@ -81,25 +85,25 @@ def summarize_medical_history(phone_number):
             {"role": "user", "content": f"Please summarize the following medical history:\n\n{medical_history}"}
         ]
         
-        # Call Groq API
+        # Call OpenAI API
         headers = {
-            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
             "Content-Type": "application/json"
         }
         
         payload = {
-            "model": "llama-3.1-8b-instant",
+            "model": "gpt-4o",
             "messages": messages,
             "temperature": 0.3,  # Lower temperature for more focused, consistent output
             "max_tokens": 1000
         }
         
-        logger.info(f"Sending request to Groq API for summarizing medical history of {phone_number}")
+        logger.info(f"Sending request to OpenAI API for summarizing medical history of {phone_number}")
         
-        response = requests.post(GROQ_API_URL, headers=headers, json=payload, timeout=30)
+        response = requests.post(OPENAI_API_URL, headers=headers, json=payload, timeout=30)
         
         if response.status_code != 200:
-            logger.error(f"Groq API error: {response.status_code} - {response.text}")
+            logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
             return {
                 "success": False,
                 "error": f"API error: {response.status_code}",

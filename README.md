@@ -1,6 +1,6 @@
 # WhatsApp Medical Assistant Bot
 
-A customizable WhatsApp chatbot that serves as a conversational medical assistant, powered by the Groq AI API and Twilio's WhatsApp API. The bot can communicate in multiple languages and presents options in an interactive format.
+A customizable WhatsApp chatbot that serves as a conversational medical assistant, powered by the OpenAI API and Twilio's WhatsApp API. The bot can communicate in multiple languages and presents options in an interactive format.
 
 ## Features
 
@@ -16,7 +16,7 @@ A customizable WhatsApp chatbot that serves as a conversational medical assistan
 
 - Python 3.7+
 - Supabase account
-- Groq API key (for the AI language model)
+- OpenAI API key (for the AI language model)
 - Twilio account with WhatsApp sandbox or Business API
 - Ngrok (for local development)
 
@@ -63,7 +63,7 @@ SUPABASE_URL=your_supabase_url
 SUPABASE_KEY=your_supabase_key
 
 # API Keys
-GROQ_API_KEY=your_groq_api_key
+OPENAI_API_KEY=your_openai_api_key
 TWILIO_ACCOUNT_SID=your_twilio_sid
 TWILIO_AUTH_TOKEN=your_twilio_token
 ```

@@ -91,15 +91,15 @@ load_dotenv()
 app = Flask(__name__)
 
 # Get API keys
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-if not GROQ_API_KEY:
-    logger.error("GROQ_API_KEY not found in environment variables")
-    raise ValueError("GROQ_API_KEY environment variable is required")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    logger.error("OPENAI_API_KEY not found in environment variables")
+    raise ValueError("OPENAI_API_KEY environment variable is required")
 
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 
-logger.info(f"GROQ_API_KEY loaded: {'Yes' if GROQ_API_KEY else 'No'}")
+logger.info(f"OPENAI_API_KEY loaded: {'Yes' if OPENAI_API_KEY else 'No'}")
 logger.info(f"TWILIO credentials loaded: {'Yes' if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN else 'No'}")
 
 # Print all environment variables for debugging (be careful with sensitive info)
@@ -110,7 +110,7 @@ for key, value in os.environ.items():
     else:
         logger.debug(f"{key}: {value}")
 
-GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
+OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 
 # Modify system prompt to include formatting for options
 SYSTEM_PROMPT = """
@@ -382,8 +382,8 @@ def webhook():
     
     try:
         # Check if API key is available
-        if not GROQ_API_KEY:
-            logger.error("GROQ_API_KEY not found in environment variables")
+        if not OPENAI_API_KEY:
+            logger.error("OPENAI_API_KEY not found in environment variables")
             resp.message("I'm sorry, the server is not properly configured. Please contact support.")
             return str(resp)
         
@@ -398,25 +398,25 @@ def webhook():
         messages = [{"role": "system", "content": enhanced_system_prompt}]
         messages.extend(user_data["history"])
         
-        # Call Groq API
+        # Call OpenAI API
         headers = {
-            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
             "Content-Type": "application/json"
         }
         
         payload = {
-            "model": "gemma2-9b-it",
+            "model": "gpt-4o",
             "messages": messages,
             "temperature": 0.7,
             "max_tokens": 800
         }
         
-        logger.info(f"Sending request to Groq API: {GROQ_API_URL}")
+        logger.info(f"Sending request to OpenAI API: {OPENAI_API_URL}")
         
-        response = requests.post(GROQ_API_URL, headers=headers, json=payload, timeout=30)
+        response = requests.post(OPENAI_API_URL, headers=headers, json=payload, timeout=30)
         
         if response.status_code != 200:
-            logger.error(f"Groq API error: {response.status_code} - {response.text}")
+            logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
             resp.message("I'm sorry, I'm having trouble connecting to my knowledge source. Please try again in a moment.")
         else:
             response_json = response.json()
