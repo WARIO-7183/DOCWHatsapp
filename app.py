@@ -230,12 +230,23 @@ def get_system_prompt_for_language(language_code):
     else:
         return SYSTEM_PROMPT
 
+def clean_phone_number(whatsapp_number):
+    """Clean the WhatsApp phone number by removing 'whatsapp:' prefix and any non-numeric characters"""
+    # Remove 'whatsapp:' prefix if present
+    if whatsapp_number.startswith('whatsapp:'):
+        whatsapp_number = whatsapp_number[9:]
+    # Remove any non-numeric characters
+    return ''.join(filter(str.isdigit, whatsapp_number))
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     """Handle incoming WhatsApp messages"""
-    # Get the message content
+    # Get the message content and user ID (phone number)
     incoming_msg = request.values.get('Body', '').strip()
-    user_id = request.values.get('From', '')
+    raw_user_id = request.values.get('From', '')
+    
+    # Clean the phone number
+    user_id = clean_phone_number(raw_user_id)
     
     # Initialize Twilio response
     resp = MessagingResponse()
@@ -281,27 +292,24 @@ def webhook():
             user_data["language"] = selected_lang
             user_data["language_selected"] = True
             
-            # Update language in database if user exists
-            if "name" in user_data:
-                update_user_language(user_id, selected_lang)
+            # Check if user exists in database
+            db_user = get_user(user_id)
+            if db_user:
+                # User exists, load their data
+                user_data.update({
+                    "name": db_user["name"],
+                    "age": db_user["age"],
+                    "gender": db_user["gender"],
+                    "medical_history": db_user["medical_history"]
+                })
+                # Ask about current health concerns
+                next_question = f"Welcome back {db_user['name']}! How can I help you today?"
+            else:
+                # New user, ask for name
+                next_question = "Could you please tell me your name?"
             
-            # Add initial assistant message in the selected language
-            initial_greeting = ""
-            if selected_lang == "en":
-                initial_greeting = "Hello! I'm your medical assistant. Could you please tell me your phone number?"
-            elif selected_lang == "hi":
-                initial_greeting = "नमस्ते! मैं आपका मेडिकल असिस्टेंट हूँ। क्या आप मुझे अपना फोन नंबर बता सकते हैं?"
-            elif selected_lang == "ta":
-                initial_greeting = "வணக்கம்! நான் உங்கள் மருத்துவ உதவியாளர். உங்கள் தொலைபேசி எண்ணை தயவுசெய்து சொல்ல முடியுமா?"
-            elif selected_lang == "te":
-                initial_greeting = "హలో! నేను మీ మెడికల్ అసిస్టెంట్‌ని. దయచేసి మీ ఫోన్ నంబర్ చెప్పగలరా?"
-            elif selected_lang == "kn":
-                initial_greeting = "ನಮಸ್ಕಾರ! ನಾನು ನಿಮ್ಮ ವೈದ್ಯಕೀಯ ಸಹಾಯಕ. ದಯವಿಟ್ಟು ನಿಮ್ಮ ಫೋನ್ ಸಂಖ್ಯೆಯನ್ನು ತಿಳಿಸಬಹುದೇ?"
-            elif selected_lang == "ml":
-                initial_greeting = "ഹലോ! ഞാൻ നിങ്ങളുടെ മെഡിക്കൽ അസിസ്റ്റന്റാണ്. നിങ്ങളുടെ ഫോൺ നമ്പർ ദയവായി പറയാമോ?"
-            
-            user_data["history"] = [{"role": "assistant", "content": initial_greeting}]
-            resp.message(initial_greeting)
+            user_data["history"] = [{"role": "assistant", "content": next_question}]
+            resp.message(next_question)
             return str(resp)
         else:
             # Invalid language selection, send language options again
@@ -310,29 +318,6 @@ def webhook():
     
     # Add user message to chat history
     user_data["history"].append({"role": "user", "content": incoming_msg})
-    
-    # Check if phone number is provided
-    if "phone_number" not in user_data:
-        user_data["phone_number"] = incoming_msg
-        # Check if user exists in database
-        db_user = get_user(incoming_msg)
-        if db_user:
-            # User exists, load their data
-            user_data.update({
-                "name": db_user["name"],
-                "age": db_user["age"],
-                "gender": db_user["gender"],
-                "medical_history": db_user["medical_history"]
-            })
-            # Ask about current health concerns
-            next_question = f"Welcome back {db_user['name']}! How can I help you today?"
-        else:
-            # New user, ask for name
-            next_question = "Could you please tell me your name?"
-        
-        user_data["history"].append({"role": "assistant", "content": next_question})
-        resp.message(next_question)
-        return str(resp)
     
     # Check if name is provided
     if "name" not in user_data:
@@ -361,13 +346,19 @@ def webhook():
             user_data["gender"] = incoming_msg  # Store the custom gender input
         
         # Create new user in database
-        create_user(
-            user_data["phone_number"],
+        success = create_user(
+            user_id,  # Use the cleaned phone number
             user_data["name"],
             user_data["age"],
             user_data["gender"],
             language=user_data["language"]
         )
+        
+        if not success:
+            logger.error(f"Failed to create user with phone number: {user_id}")
+            resp.message("I'm sorry, there was an error saving your information. Please try again later.")
+            return str(resp)
+            
         next_question = "Do you have any of the following health issues? (Reply with the number or type 'none' if you don't have any):\n1️⃣ Diabetes\n2️⃣ Blood Pressure\n3️⃣ Chronic Problems\n4️⃣ Kidney or Liver Issues\n5️⃣ Other (please specify)"
         user_data["history"].append({"role": "assistant", "content": next_question})
         resp.message(next_question)
@@ -434,7 +425,7 @@ def webhook():
             
             # Update medical history in database
             medical_history = json.dumps(user_data["history"])
-            update_user_medical_history(user_data["phone_number"], medical_history)
+            update_user_medical_history(user_id, medical_history)
             
             resp.message(assistant_message)
         
